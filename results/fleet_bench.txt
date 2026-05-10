@@ -1,0 +1,44 @@
+================================================================
+FLEET CRATE MICRO-BENCHMARK SUITE
+Hardware: AMD Ryzen AI 9 HX 370 (Zen 5, AVX-512, running AVX2)
+================================================================
+
+── 1. EISENSTEIN NORM (constraint-theory-core) ──
+  i32 scalar:          0.2 ns/op  ( 4144.3M ops/s)
+  f64 scalar:          0.2 ns/op  ( 4272.2M ops/s)
+  i32 AVX2 (4x):       0.2 ns/op  (16955.6M norms/s,  4238.9M pairs/s)
+  snap to lattice:    22.5 ns/op  (   44.4M snaps/s)
+
+── 2. BLOOM CRDT (constraint-crdt) ──
+  scalar   125 words:    22.2 GB/s
+  AVX2     125 words:    70.7 GB/s
+  scalar  1000 words:    31.2 GB/s
+  AVX2    1000 words:   125.6 GB/s
+  scalar  8000 words:    33.3 GB/s
+  AVX2    8000 words:    97.4 GB/s
+
+── 3. FOLDING ORDER / RG FLOW (folding-order) ──
+  1 stage (16 vals):   16.9 ns/op  (   59.3M stages/s)
+  5 stages (full):     77.2 ns/op  (   12.9M flows/s)
+  Contraction k=1/√3=0.5774: vals converge to 20.38 (mean of 16 rand in [-100,200])
+
+── 4. TILE HASH (plato-runtime) ──
+  64-byte hash:         4.7 ns/op  (  213.2M hashes/s)
+  1000-tile batch:      3.8 us     (    0.3K batches/s)
+
+── 5. VOICE LEADING (tonnetz-constraints) ──
+  6-note distance:      2.6 ns/op  (  382.9M ops/s)
+
+── 6. HOLONOMY / EMERGENCE (holonomy-consensus) ──
+  β₁ computation:       0.2 ns/op  ( 4095.0M ops/s)
+  tree check:           0.2 ns/op  ( 4042.0M ops/s)
+
+── 7. COMBINED FLEET PIPELINE ──
+  (snap → norm → bloom → fold → hash → betti₁)
+
+  100 constraints:      19.4 ns/constraint (   51.7M constraints/s)
+  Pipeline hash:     0xf54f99d2d80342a9
+
+================================================================
+DONE. All fleet crates profiled.
+================================================================

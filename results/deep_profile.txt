@@ -1,0 +1,84 @@
+================================================================
+DEEP FLEET PROFILER — Cache, Branch, Convergence Analysis
+Hardware: AMD Ryzen AI 9 HX 370 (Zen 5, AVX-512)
+================================================================
+
+── Exp 1: Norm vs Magnitude (pipeline depth) ──
+   Magnitude        ns/op      M ops/s
+           1        0.7ns     1428.4M
+          10        0.6ns     1770.1M
+         100        0.2ns     4055.1M
+        1000        0.2ns     4179.5M
+       10000        0.2ns     4161.2M
+      100000        0.2ns     4113.4M
+     1000000        0.2ns     4122.4M
+
+── Exp 2: Bloom Merge Cache Hierarchy ──
+      Size    Level     Scalar     AVX2  Speedup
+      ----    -----     ------     ----  -------
+       4KB       L1  31067.0GB/s 123572.7GB/s    4.0x
+       8KB       L1  27178.2GB/s  78787.0GB/s    2.9x
+      16KB       L1  24770.3GB/s  83950.0GB/s    3.4x
+      32KB       L1  28457.0GB/s  90827.3GB/s    3.2x
+      48KB       L2  27865.6GB/s  96967.1GB/s    3.5x
+      64KB       L2  25925.8GB/s  93942.8GB/s    3.6x
+      96KB       L2  28928.5GB/s  97538.4GB/s    3.4x
+     128KB       L2  31604.4GB/s 102694.7GB/s    3.2x
+     256KB       L2  31514.2GB/s  98093.6GB/s    3.1x
+     512KB       L2  31148.2GB/s  68059.8GB/s    2.2x
+    1024KB       L3  30208.9GB/s  55063.6GB/s    1.8x
+    2048KB       L3  30123.0GB/s  50149.9GB/s    1.7x
+    4096KB       L3  24514.1GB/s  42977.0GB/s    1.8x
+    8192KB     DRAM  22861.8GB/s  34937.7GB/s    1.5x
+
+── Exp 3: Snap to Lattice — Branch Misprediction ──
+  1000000 random snaps: 20.5 ns/op (48.9M/s)
+  Snaps that adjusted: 163123/1000000 (16.3%)
+  → 83.7% of snaps are a simple round (no branch)
+
+── Exp 4: Folding Order Convergence ──
+  k = 1/√3 = 0.5774 (Banach contraction rate)
+
+  Start        Stage0   Stage1   Stage2   Stage5  Stage10
+  -----        ------   ------   ------   ------  -------
+  uniform        50.0    50.00    50.00    50.00    50.00
+  bimodal      -100.0   -57.74   -33.33    -6.42    -0.41
+  spike        1000.0   604.16   375.63   123.52    67.29
+  random         54.0    27.19    11.71    -5.37    -9.18
+
+  Anomaly detection test (spike at index 0):
+    Stage 0: mean=78.1 σ=108.9 anomalies=1
+    Stage 1: mean=78.1 σ=62.9 anomalies=1
+    Stage 2: mean=78.1 σ=36.3 anomalies=1
+    Stage 3: mean=78.1 σ=21.0 anomalies=1
+    Stage 4: mean=78.1 σ=12.1 anomalies=1
+    Stage 5: mean=78.1 σ=7.0 anomalies=1
+    Stage 6: mean=78.1 σ=4.0 anomalies=1
+    Stage 7: mean=78.1 σ=2.3 anomalies=1
+    Stage 8: mean=78.1 σ=1.3 anomalies=1
+    Stage 9: mean=78.1 σ=0.8 anomalies=1
+
+── Exp 5: Theoretical vs Actual Throughput ──
+  Zen 5 theoretical limits:
+    Boost clock:        5.1 GHz
+    AVX2 FADD:          2x256b/cycle = 82 GFLOPS
+    AVX2 FMUL:          2x256b/cycle = 82 GFLOPS
+    L1D bandwidth:      2x256b/cycle = 326.4 GB/s
+    L2 bandwidth:       64B/cycle    = 326.4 GB/s
+    DRAM (DDR5-5600):   ~44.8 GB/s (dual channel)
+
+  Our actual measurements:
+    Eisenstein norm:    4144M ops/s = 4.1 GHz (1 mul + 1 sub + 1 add ≈ 1 cycle)
+    Bloom merge AVX2:   125.6 GB/s  (8KB) → 60% of L1D ceiling
+    Bloom merge scalar:  33.3 GB/s  (64KB) → near DRAM ceiling
+    Tile hash:           213M ops/s  (4.7ns) → ~24 cycles per 64-byte hash
+    Snap to lattice:      44M ops/s  (22.5ns) → ~115 cycles (branch-heavy)
+
+  Headroom analysis:
+    Norm:     AT CEILING (1 op/cycle, cannot go faster)
+    Bloom:    60% of L1D — could improve with prefetch or NT stores
+    Snap:     20x slower than norm — branch-heavy, optimization target #1
+    Hash:     24 cycles — reasonable for siphash-like
+
+================================================================
+DONE.
